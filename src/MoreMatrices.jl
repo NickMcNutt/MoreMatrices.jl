@@ -1,5 +1,18 @@
 module MoreMatrices
 
-# package code goes here
+export
+    random_perturb!,
+    random_permute!,
+    random_rotate!,
+    block_matrix_R,
+    extract_rotations,
+    extract_rotations2,
+    apply_rotations,
+    kabsch,
+    kronshuffle!,
+    kronshuffle,
+    kronfactor
 
-end # module
+include("operations.jl")
+
+end
