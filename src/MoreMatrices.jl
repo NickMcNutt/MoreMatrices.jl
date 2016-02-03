@@ -10,8 +10,11 @@ export
     kronfactor,
     kronsum,
     joinblocks,
+    rotation!,
     rotation,
+    nearest_orthogonal!,
     nearest_orthogonal,
+    nearest_special_orthogonal!,
     nearest_special_orthogonal,
 
     # random_matrices.jl

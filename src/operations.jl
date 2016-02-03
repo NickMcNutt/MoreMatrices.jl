@@ -36,20 +36,20 @@ kronsum{T}(A::Matrix{T}, B::Matrix{T}, C::Matrix{T}, D::Matrix{T}) = kron(A, eye
 joinblocks{T}(A::Matrix{Matrix{T}}) = hcat([vcat(A[:, i]...) for i in 1:size(A, 2)]...)
 
 # Generate a rotation matrix using the Lie algebra vector [x, y, z]
-function rotation{T}(R::Matrix{T}, x::T, y::T, z::T)
+function rotation!{T}(R::Matrix{T}, x::T, y::T, z::T)
     θ = sqrt(x^2 + y^2 + z^2)
     K = [0 -z/θ y/θ ; z/θ 0 -x/θ ; -y/θ x/θ 0]
     copy!(R, I + sin(θ)*K + (1-cos(θ))*K^2)
 end
 
 # Nearest orthogonal matrix to A
-function nearest_orthogonal{T}(O::Matrix{T}, A::Matrix{T})
+function nearest_orthogonal!{T}(O::Matrix{T}, A::Matrix{T})
     F = svdfact(A)
     copy!(O, F[:U] * F[:Vt])
 end
 
 # Nearest special orthogonal matrix to A
-function nearest_special_orthogonal{T}(SO::Matrix{T}, A::Matrix{T})
+function nearest_special_orthogonal!{T}(SO::Matrix{T}, A::Matrix{T})
     F = svdfact(A)
     D = eye(A)
     D[end, end] = det(F[:U] * F[:Vt])
@@ -57,6 +57,6 @@ function nearest_special_orthogonal{T}(SO::Matrix{T}, A::Matrix{T})
 end
 
 # Memory allocating function variants
-rotation{T}(x::T, y::T, z::T) = rotation(Matrix{T}(3, 3), x, y, z)
-nearest_orthogonal{T}(A::Matrix{T}) = nearest_orthogonal(similar(A), A)
-nearest_special_orthogonal{T}(A::Matrix{T}) = nearest_special_orthogonal(similar(A), A)
+rotation{T}(x::T, y::T, z::T) = rotation!(Matrix{T}(3, 3), x, y, z)
+nearest_orthogonal{T}(A::Matrix{T}) = nearest_orthogonal!(similar(A), A)
+nearest_special_orthogonal{T}(A::Matrix{T}) = nearest_special_orthogonal!(similar(A), A)
