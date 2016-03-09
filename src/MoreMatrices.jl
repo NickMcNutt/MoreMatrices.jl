@@ -3,13 +3,14 @@ module MoreMatrices
 export
     # operations.jl
 
-    kronshuffle!,
-    kronshuffle,
-    kronunshuffle!,
-    kronunshuffle,
-    kronfactor,
-    kronsum,
-    joinblocks,
+    kron_shuffle!,
+    kron_shuffle,
+    kron_unshuffle!,
+    kron_unshuffle,
+    kron_factor,
+    kron_sum,
+    join_blocks,
+    split_blocks,
     rotation!,
     rotation,
     nearest_orthogonal!,
@@ -19,6 +20,7 @@ export
 
     # random_matrices.jl
 
+    random_orthogonal!,
     random_orthogonal,
     random_rotation,
     random_permutation

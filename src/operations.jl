@@ -1,5 +1,5 @@
 # Rearrangle a Kronecker product in preparation for factorization
-function kronshuffle!{T}(B::Matrix{T}, A::Matrix{T}, outer_rows::Int, outer_cols::Int, inner_rows::Int, inner_cols::Int)
+function kron_shuffle!{T}(B::Matrix{T}, A::Matrix{T}, outer_rows::Int, outer_cols::Int, inner_rows::Int, inner_cols::Int)
     for or in 1:outer_rows, oc in 1:outer_cols, ir in 1:inner_rows, ic in 1:inner_cols
         B[outer_rows * (oc-1) + or, inner_rows * (ic-1) + ir] = A[inner_rows * (or-1) + ir, inner_cols * (oc-1) + ic]
     end
@@ -7,9 +7,9 @@ function kronshuffle!{T}(B::Matrix{T}, A::Matrix{T}, outer_rows::Int, outer_cols
     return B
 end
 
-kronshuffle{T}(A::Matrix{T}, outer_rows::Int, outer_cols::Int, inner_rows::Int, inner_cols::Int) = kronshuffle!(Matrix{T}(outer_rows * outer_cols, inner_rows * inner_cols), A, outer_rows, outer_cols, inner_rows, inner_cols);
+kron_shuffle{T}(A::Matrix{T}, outer_rows::Int, outer_cols::Int, inner_rows::Int, inner_cols::Int) = kron_shuffle!(Matrix{T}(outer_rows * outer_cols, inner_rows * inner_cols), A, outer_rows, outer_cols, inner_rows, inner_cols);
 
-function kronunshuffle!{T}(B::Matrix{T}, A::Matrix{T}, outer_rows::Int, outer_cols::Int, inner_rows::Int, inner_cols::Int)
+function kron_unshuffle!{T}(B::Matrix{T}, A::Matrix{T}, outer_rows::Int, outer_cols::Int, inner_rows::Int, inner_cols::Int)
     for or in 1:outer_rows, oc in 1:outer_cols, ir in 1:inner_rows, ic in 1:inner_cols
         B[inner_rows * (or-1) + ir, inner_cols * (oc-1) + ic] = A[outer_rows * (oc-1) + or, inner_rows * (ic-1) + ir] 
     end
@@ -17,11 +17,11 @@ function kronunshuffle!{T}(B::Matrix{T}, A::Matrix{T}, outer_rows::Int, outer_co
     return B
 end
 
-kronunshuffle{T}(A::Matrix{T}, outer_rows::Int, outer_cols::Int, inner_rows::Int, inner_cols::Int) = kronunshuffle!(Matrix{T}(outer_rows * inner_rows, outer_cols * inner_cols), A, outer_rows, outer_cols, inner_rows, inner_cols);
+kron_unshuffle{T}(A::Matrix{T}, outer_rows::Int, outer_cols::Int, inner_rows::Int, inner_cols::Int) = kron_unshuffle!(Matrix{T}(outer_rows * inner_rows, outer_cols * inner_cols), A, outer_rows, outer_cols, inner_rows, inner_cols);
 
 # Factorization of a Kronecker product into its nearest two matrix factors
-function kronfactor{T}(A::Matrix{T}, outer_rows::Int, outer_cols::Int, inner_rows::Int, inner_cols::Int)
-    F = svdfact(kronshuffle(A, outer_rows, outer_cols, inner_rows, inner_cols))
+function kron_factor{T}(A::Matrix{T}, outer_rows::Int, outer_cols::Int, inner_rows::Int, inner_cols::Int)
+    F = svdfact(kron_shuffle(A, outer_rows, outer_cols, inner_rows, inner_cols))
     X = reshape(sqrt(F[:S][1]) * F[:U][:, 1], outer_rows, outer_cols)
     Y = reshape(sqrt(F[:S][1]) * F[:V][:, 1], inner_rows, inner_cols)
     
@@ -29,11 +29,18 @@ function kronfactor{T}(A::Matrix{T}, outer_rows::Int, outer_cols::Int, inner_row
 end
 
 # Kronecker sum: A ⊕ B ⊕ ... = A ⊗ I ⊗ ... + I ⊗ B ⊗ ... + I ⊗ I ⊗ ... + ...
-kronsum{T}(A::Matrix{T}, B::Matrix{T}) = kron(A, eye(B)) + kron(eye(A), B)
-kronsum{T}(A::Matrix{T}, B::Matrix{T}, C::Matrix{T}) = kron(A, eye(B), eye(C)) + kron(eye(A), B, eye(C)) + kron(eye(A), eye(B), C)
-kronsum{T}(A::Matrix{T}, B::Matrix{T}, C::Matrix{T}, D::Matrix{T}) = kron(A, eye(B), eye(C), eye(D)) + kron(eye(A), B, eye(C), eye(D)) + kron(eye(A), eye(B), C, eye(D)) + kron(eye(A), eye(B), eye(C), D)
+kron_sum{T}(A::Matrix{T}, B::Matrix{T}) = kron(A, eye(B)) + kron(eye(A), B)
+kron_sum{T}(A::Matrix{T}, B::Matrix{T}, C::Matrix{T}) = kron(A, eye(B), eye(C)) + kron(eye(A), B, eye(C)) + kron(eye(A), eye(B), C)
+kron_sum{T}(A::Matrix{T}, B::Matrix{T}, C::Matrix{T}, D::Matrix{T}) = kron(A, eye(B), eye(C), eye(D)) + kron(eye(A), B, eye(C), eye(D)) + kron(eye(A), eye(B), C, eye(D)) + kron(eye(A), eye(B), eye(C), D)
 
-joinblocks{T}(A::Matrix{Matrix{T}}) = hcat([vcat(A[:, i]...) for i in 1:size(A, 2)]...)
+join_blocks{T}(A::Matrix{Matrix{T}}) = hcat([vcat(A[:, i]...) for i in 1:size(A, 2)]...)
+
+function split_blocks{T}(C::Matrix{T}, rows::Int, cols::Int)
+    block_rows, block_cols = size(C)
+    mod(block_rows, rows) != 0 && error("Number of rows in block matrix ($(block_rows)) not divisible by number of rows in individual matrices ($rows)")
+    mod(block_cols, cols) != 0 && error("Number of columns in block matrix ($(block_cols)) not divisible by number of columns in individual matrices ($cols)")
+    [C[(i-1)*rows + 1 : i*rows, (j-1)*cols + 1 : j*cols] for i in 1:fld(block_rows, rows), j in 1:fld(block_cols, cols)]
+end
 
 # Generate a rotation matrix using the Lie algebra vector [x, y, z]
 function rotation!{T}(R::Matrix{T}, x::T, y::T, z::T)
@@ -42,11 +49,15 @@ function rotation!{T}(R::Matrix{T}, x::T, y::T, z::T)
     copy!(R, I + sin(θ)*K + (1-cos(θ))*K^2)
 end
 
+rotation{T}(x::T, y::T, z::T) = rotation!(Matrix{T}(3, 3), x, y, z)
+
 # Nearest orthogonal matrix to A
 function nearest_orthogonal!{T}(O::Matrix{T}, A::Matrix{T})
     F = svdfact(A)
     copy!(O, F[:U] * F[:Vt])
 end
+
+nearest_orthogonal{T}(A::Matrix{T}) = nearest_orthogonal!(similar(A), A)
 
 # Nearest special orthogonal matrix to A
 function nearest_special_orthogonal!{T}(SO::Matrix{T}, A::Matrix{T})
@@ -56,7 +67,4 @@ function nearest_special_orthogonal!{T}(SO::Matrix{T}, A::Matrix{T})
     copy!(SO, F[:U] * D * F[:Vt])
 end
 
-# Memory allocating function variants
-rotation{T}(x::T, y::T, z::T) = rotation!(Matrix{T}(3, 3), x, y, z)
-nearest_orthogonal{T}(A::Matrix{T}) = nearest_orthogonal!(similar(A), A)
 nearest_special_orthogonal{T}(A::Matrix{T}) = nearest_special_orthogonal!(similar(A), A)

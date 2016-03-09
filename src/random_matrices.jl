@@ -1,5 +1,5 @@
 # Generate a random orthogonal matrix
-function random_orthogonal{T}(O::Matrix{T}, n::Int)
+function random_orthogonal!{T}(O::Matrix{T}, n::Int)
     F = qrfact!(randn(n, n))
     Q = full(F[:Q])
     R = F[:R]
@@ -13,13 +13,10 @@ function random_orthogonal{T}(O::Matrix{T}, n::Int)
     return copy!(O, Q)
 end
 
+random_orthogonal(n::Int) = random_orthogonal!(Matrix{Float64}(n, n), n)
+
 # Generate a random 3D rotation matrix
-random_rotation{T}(R::Matrix{T}) = rotation(R, randn(), randn(), randn())
+random_rotation() = rotation(randn(), randn(), randn())
 
 # Generate a random permutation matrix
-random_permutation{T}(P::Matrix{T}, n::Int) = copy!(P, eye(T, n)[:, randperm(n)])
-
-# Memory allocating function variants
-random_orthogonal(n::Int) = random_orthogonal(Matrix{Float64}(n, n), n)
-random_rotation() = random_rotation(Matrix{Float64}(3, 3))
-random_permutation(n::Int) = random_permutation(Matrix{Int}(n, n), n)
+random_permutation(n::Int) = eye(n)[:, randperm(n)]
