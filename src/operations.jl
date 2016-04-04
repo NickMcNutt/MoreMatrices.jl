@@ -62,8 +62,8 @@ end
 end
 
 rotation{T}(x::T, y::T, z::T) = rotation!(Matrix{T}(3, 3), x, y, z)
-rotation!{T}(R::Matrix{T}, v::Vector{T}) = @inbounds rotation!(R, v[1], v[2], v[3])
-rotation{T}(v::Vector{T}) = @inbounds rotation!(Matrix{T}(3, 3), v[1], v[2], v[3])
+rotation!{T}(R::Matrix{T}, v::Vector{T}) = rotation!(R, v[1], v[2], v[3])
+rotation{T}(v::Vector{T}) = rotation!(Matrix{T}(3, 3), v[1], v[2], v[3])
 
 # Nearest orthogonal matrix to A
 function nearest_orthogonal!{T}(O::Matrix{T}, A::Matrix{T})
