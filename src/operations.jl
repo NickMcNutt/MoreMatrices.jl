@@ -113,7 +113,7 @@ vec2skew{T}(x::T, y::T, z::T) = vec2skew!(Matrix{T}(3, 3), x, y, z)
     return k
 end
 
-skew2vec(K::Matrix) = @inbounds K[3, 2], K[1, 3], K[2, 1]
+skew2vec(K::Matrix) = [3, 2], K[1, 3], K[2, 1]
 
 
 
