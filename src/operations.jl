@@ -43,13 +43,27 @@ function split_blocks{T}(C::Matrix{T}, rows::Int, cols::Int)
 end
 
 # Generate a rotation matrix using the Lie algebra vector [x, y, z]
-function rotation!{T}(R::Matrix{T}, x::T, y::T, z::T)
+@inbounds function rotation!{T}(R::Matrix{T}, x::T, y::T, z::T)
     θ = sqrt(x^2 + y^2 + z^2)
-    K = [0 -z/θ y/θ ; z/θ 0 -x/θ ; -y/θ x/θ 0]
-    copy!(R, I + sin(θ)*K + (1-cos(θ))*K^2)
+    g = sin(θ) / θ
+    h = (1 - cos(θ)) / θ^2
+
+    R[1, 1] = 1 - h*(z^2 + y^2)
+    R[2, 1] = h*x*y + g*z
+    R[3, 1] = h*x*z - g*y
+    R[1, 2] = h*x*y - g*z
+    R[2, 2] = 1 - h*(z^2 + x^2)
+    R[3, 2] = h*y*z + g*x
+    R[1, 3] = h*x*z + g*y
+    R[2, 3] = h*y*z - g*x
+    R[3, 3] = 1 - h*(y^2 + x^2)
+
+    return R
 end
 
 rotation{T}(x::T, y::T, z::T) = rotation!(Matrix{T}(3, 3), x, y, z)
+rotation!{T}(R::Matrix{T}, v::Vector{T}) = @inbounds rotation!(R, v[1], v[2], v[3])
+rotation{T}(v::Vector{T}) = @inbounds rotation!(Matrix{T}(3, 3), v[1], v[2], v[3])
 
 # Nearest orthogonal matrix to A
 function nearest_orthogonal!{T}(O::Matrix{T}, A::Matrix{T})
@@ -68,3 +82,42 @@ function nearest_special_orthogonal!{T}(SO::Matrix{T}, A::Matrix{T})
 end
 
 nearest_special_orthogonal{T}(A::Matrix{T}) = nearest_special_orthogonal!(similar(A), A)
+
+cayley(A::Matrix) = 2 * inv(I + A) - I
+
+@inbounds function vec2skew!{T}(K::Matrix{T}, k::Vector{T})
+    K[1, 1] =  0    ; K[2, 1] =  k[3] ; K[3, 1] = -k[2]
+    K[1, 2] = -k[3] ; K[2, 2] =  0    ; K[3, 2] =  k[1]
+    K[1, 3] =  k[2] ; K[2, 3] = -k[1] ; K[3, 3] =  0
+
+    return K
+end
+
+vec2skew{T}(k::Vector{T}) = vec2skew!(Matrix{T}(3, 3), k)
+
+@inbounds function vec2skew!{T}(K::Matrix{T}, x::T, y::T, z::T)
+    K[1, 1] = 0  ; K[2, 1] =  z ; K[3, 1] = -y
+    K[1, 2] = -z ; K[2, 2] =  0 ; K[3, 2] =  x
+    K[1, 3] =  y ; K[2, 3] = -x ; K[3, 3] =  0
+
+    return K
+end
+
+vec2skew{T}(x::T, y::T, z::T) = vec2skew!(Matrix{T}(3, 3), x, y, z)
+
+@inbounds function skew2vec!{T}(k::Vector{T}, K::Matrix{T})
+    k[1] = K[3, 2]
+    k[2] = K[1, 3]
+    k[3] = K[2, 1]
+
+    return k
+end
+
+skew2vec(K::Matrix) = @inbounds K[3, 2], K[1, 3], K[2, 1]
+
+
+
+
+
+
+

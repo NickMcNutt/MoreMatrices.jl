@@ -17,6 +17,11 @@ export
     nearest_orthogonal,
     nearest_special_orthogonal!,
     nearest_special_orthogonal,
+    cayley,
+    vec2skew!,
+    vec2skew,
+    skew2vec!,
+    skew2vec,
 
     # random_matrices.jl
 
