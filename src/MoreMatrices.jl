@@ -1,6 +1,10 @@
 module MoreMatrices
 
+const ɛ = ([0 0 0; 0 0 1; 0 -1 0], [0 0 -1; 0 0 0; 1 0 0], [0 1 0; -1 0 0; 0 0 0])
+
 export
+    ɛ,
+
     # operations.jl
 
     kron_shuffle!,
