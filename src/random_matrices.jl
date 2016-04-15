@@ -16,7 +16,10 @@ end
 random_orthogonal(n::Int) = random_orthogonal!(Matrix{Float64}(n, n), n)
 
 # Generate a random 3D rotation matrix
-random_rotation() = rotation(randn(), randn(), randn())
+function random_rotation()
+    Q = random_orthogonal(3)
+    det(Q) * Q
+end
 
 # Generate a random permutation matrix
 random_permutation(n::Int) = eye(n)[:, randperm(n)]
