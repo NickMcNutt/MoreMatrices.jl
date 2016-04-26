@@ -85,6 +85,11 @@ nearest_special_orthogonal{T}(A::Matrix{T}) = nearest_special_orthogonal!(simila
 
 cayley(A::Matrix) = 2 * inv(I + A) - I
 
+function rotation2skew(R::Matrix)
+    θ = acos(0.5*(trace(R) - 1))
+    (0.5*θ/sin(θ)) * (R - R')
+end
+
 @inbounds function vec2skew!{T}(K::Matrix{T}, k::Vector{T})
     K[1, 1] =  0    ; K[2, 1] =  k[3] ; K[3, 1] = -k[2]
     K[1, 2] = -k[3] ; K[2, 2] =  0    ; K[3, 2] =  k[1]

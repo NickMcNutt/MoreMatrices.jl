@@ -22,6 +22,7 @@ export
     nearest_special_orthogonal!,
     nearest_special_orthogonal,
     cayley,
+    rotation2skew,
     vec2skew!,
     vec2skew,
     skew2vec!,
