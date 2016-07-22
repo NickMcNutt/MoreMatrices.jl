@@ -17,6 +17,8 @@ export
     split_blocks,
     rotation!,
     rotation,
+    euler_zyz!,
+    euler_zyz,
     nearest_orthogonal!,
     nearest_orthogonal,
     nearest_special_orthogonal!,

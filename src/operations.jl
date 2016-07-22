@@ -65,6 +65,25 @@ rotation{T}(x::T, y::T, z::T) = rotation!(Matrix{T}(3, 3), x, y, z)
 rotation!{T}(R::Matrix{T}, v::Vector{T}) = rotation!(R, v[1], v[2], v[3])
 rotation{T}(v::Vector{T}) = rotation!(Matrix{T}(3, 3), v[1], v[2], v[3])
 
+# Generate a rotation matrix using the Euler ZYZ parameterization
+@inbounds function euler_zyz!{T}(R::Matrix{T}, α::T, β::T, γ::T)
+    R[1, 1] = cos(γ)⋅cos(α)⋅cos(β) - sin(γ)⋅sin(α)
+    R[2, 1] = sin(α)⋅cos(γ)⋅cos(β) + sin(γ)⋅cos(α)
+    R[3, 1] = -sin(β)⋅cos(γ)
+    R[1, 2] = -sin(γ)⋅cos(α)⋅cos(β) - cos(γ)⋅sin(α)
+    R[2, 2] = -sin(γ)⋅sin(α)⋅cos(β) + cos(γ)⋅cos(α)
+    R[3, 2] = sin(β)⋅sin(γ)
+    R[1, 3] = sin(β)⋅cos(α)
+    R[2, 3] = sin(β)⋅sin(α)
+    R[3, 3] = cos(β)
+
+    return R
+end
+
+euler_zyz{T}(α::T, β::T, γ::T) = euler_zyz!(Matrix{T}(3, 3), α, β, γ)
+euler_zyz!{T}(R::Matrix{T}, v::Vector{T}) = euler_zyz!(R, v[1], v[2], v[3])
+euler_zyz{T}(v::Vector{T}) = euler_zyz!(Matrix{T}(3, 3), v[1], v[2], v[3])
+
 # Nearest orthogonal matrix to A
 function nearest_orthogonal!{T}(O::Matrix{T}, A::Matrix{T})
     F = svdfact(A)
